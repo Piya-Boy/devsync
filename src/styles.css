@@ -183,6 +183,18 @@ input:focus-visible {
   color: #cbd5e1;
 }
 
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+}
+
+.status-text {
+  margin: 0;
+  color: #94a3b8;
+}
+
 .log-output {
   max-height: 260px;
   margin: 0;

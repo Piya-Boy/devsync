@@ -76,6 +76,9 @@ function App() {
   );
 
   const selectedFolderIds = useMemo(() => Array.from(selectedFolders), [selectedFolders]);
+  const deployStatus = isRunning
+    ? 'Deploy is running. Logs will appear below.'
+    : `${selectedFolderIds.length} folder${selectedFolderIds.length === 1 ? '' : 's'} selected.`;
 
   const toggleFolder = (id: string) => {
     setSelectedFolders((current) => {
@@ -168,9 +171,14 @@ function App() {
               <input type="checkbox" checked={dryRun} onChange={(event) => setDryRun(event.target.checked)} />
               <span>Dry run</span>
             </label>
-            <button type="submit" disabled={isRunning || selectedFolderIds.length === 0 || !selectedServer}>
-              {isRunning ? 'Deploying...' : 'Deploy'}
-            </button>
+            <div className="action-row">
+              <button type="submit" disabled={isRunning || selectedFolderIds.length === 0 || !selectedServer}>
+                {isRunning ? 'Deploying...' : 'Deploy'}
+              </button>
+              <p className="status-text" aria-live="polite">
+                {deployStatus}
+              </p>
+            </div>
             {deployOutput ? <pre className="log-output">{deployOutput}</pre> : null}
           </form>
         ) : null}
