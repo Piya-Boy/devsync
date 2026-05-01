@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 
 type Server = {
   name: string;
@@ -55,6 +56,20 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    listen<string>('devsync-log', (event) => {
+      setDeployOutput((current) => `${current}${event.payload}\n`);
+    }).then((cleanup) => {
+      unlisten = cleanup;
+    });
+
+    return () => {
+      unlisten?.();
+    };
+  }, []);
+
   const selectedServerDetails = useMemo(
     () => config?.servers.find((server) => server.name === selectedServer),
     [config?.servers, selectedServer],
@@ -86,7 +101,9 @@ function App() {
         folders: selectedFolderIds,
         dryRun,
       });
-      setDeployOutput(output || 'devsync completed with no output.');
+      if (!output) {
+        setDeployOutput((current) => current || 'devsync completed with no output.');
+      }
     } catch (err) {
       setError(String(err));
     } finally {

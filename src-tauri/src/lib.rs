@@ -1,5 +1,13 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf, process::Command};
+use std::{
+    fs,
+    io::{BufRead, BufReader, Read},
+    path::PathBuf,
+    process::{Command, Stdio},
+    sync::{Arc, Mutex},
+    thread,
+};
+use tauri::Emitter;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,7 +57,12 @@ fn config_path() -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
-fn run_devsync(server: String, folders: Vec<String>, dry_run: bool) -> Result<String, String> {
+fn run_devsync(
+    app: tauri::AppHandle,
+    server: String,
+    folders: Vec<String>,
+    dry_run: bool,
+) -> Result<String, String> {
     let cli = cli_path()?;
     let mut command = Command::new(&cli);
     command.arg("push").arg("--server").arg(server).arg("--yes");
@@ -62,23 +75,81 @@ fn run_devsync(server: String, folders: Vec<String>, dry_run: bool) -> Result<St
         command.arg("--folder").arg(folder);
     }
 
-    let output = command
-        .output()
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .map_err(|err| format!("failed to execute {}: {err}", cli.display()))?;
 
-    let mut combined = String::new();
-    combined.push_str(&String::from_utf8_lossy(&output.stdout));
-    combined.push_str(&String::from_utf8_lossy(&output.stderr));
+    let collected = Arc::new(Mutex::new(String::new()));
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "failed to capture devsync stdout".to_string())?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| "failed to capture devsync stderr".to_string())?;
 
-    if output.status.success() {
+    let stdout_handle = stream_reader(app.clone(), stdout, "", collected.clone());
+    let stderr_handle = stream_reader(app.clone(), stderr, "", collected.clone());
+
+    let status = child
+        .wait()
+        .map_err(|err| format!("failed to wait for devsync process: {err}"))?;
+
+    stdout_handle
+        .join()
+        .map_err(|_| "failed to join stdout reader thread".to_string())?;
+    stderr_handle
+        .join()
+        .map_err(|_| "failed to join stderr reader thread".to_string())?;
+
+    let combined = collected
+        .lock()
+        .map_err(|_| "failed to collect devsync output".to_string())?
+        .clone();
+
+    if status.success() {
         Ok(combined)
     } else {
         Err(if combined.trim().is_empty() {
-            format!("devsync exited with status {}", output.status)
+            format!("devsync exited with status {status}")
         } else {
             combined
         })
     }
+}
+
+fn stream_reader<R: Read + Send + 'static>(
+    app: tauri::AppHandle,
+    reader: R,
+    prefix: &'static str,
+    collected: Arc<Mutex<String>>,
+) -> thread::JoinHandle<()> {
+    thread::spawn(move || {
+        for line in BufReader::new(reader).lines() {
+            match line {
+                Ok(line) => {
+                    let payload = format!("{prefix}{line}");
+                    if let Ok(mut buffer) = collected.lock() {
+                        buffer.push_str(&payload);
+                        buffer.push('\n');
+                    }
+                    let _ = app.emit("devsync-log", payload);
+                }
+                Err(err) => {
+                    let payload = format!("failed to read devsync output: {err}");
+                    if let Ok(mut buffer) = collected.lock() {
+                        buffer.push_str(&payload);
+                        buffer.push('\n');
+                    }
+                    let _ = app.emit("devsync-log", payload);
+                    break;
+                }
+            }
+        }
+    })
 }
 
 fn cli_path() -> Result<PathBuf, String> {
