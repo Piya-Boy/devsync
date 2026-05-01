@@ -103,7 +103,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 9 — BUILD MULTI-OS BINARIES
+# ✅ PHASE 9 — BUILD MULTI-OS BINARIES
 
 ```bash id="b1"
 GOOS=windows GOARCH=amd64 go build -o devsync.exe

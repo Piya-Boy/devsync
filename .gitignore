@@ -1,0 +1,7 @@
+dist/
+src-tauri/bin/*
+!src-tauri/bin/.gitkeep
+node_modules/
+target/
+.env
+.env.*
