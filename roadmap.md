@@ -286,7 +286,7 @@ download → temp file → replace binary → restart
 
 ---
 
-# 🧱 PHASE 19 — RELEASE WORKFLOW
+# ✅ PHASE 19 — RELEASE WORKFLOW
 
 ## Tasks
 

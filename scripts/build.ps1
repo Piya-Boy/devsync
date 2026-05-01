@@ -9,9 +9,9 @@ $out = Join-Path $root $OutputDir
 New-Item -ItemType Directory -Path $out -Force | Out-Null
 
 $targets = @(
-    @{ GOOS = "windows"; GOARCH = "amd64"; Output = "devsync-windows-amd64.exe" },
-    @{ GOOS = "linux";   GOARCH = "amd64"; Output = "devsync-linux-amd64" },
-    @{ GOOS = "darwin";  GOARCH = "amd64"; Output = "devsync-darwin-amd64" }
+    @{ GOOS = "windows"; GOARCH = "amd64"; Output = "devsync-windows.exe" },
+    @{ GOOS = "linux";   GOARCH = "amd64"; Output = "devsync-linux" },
+    @{ GOOS = "darwin";  GOARCH = "amd64"; Output = "devsync-macos" }
 )
 
 foreach ($target in $targets) {
