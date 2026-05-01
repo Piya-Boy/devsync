@@ -51,6 +51,30 @@ fn load_config() -> Result<DevSyncConfig, String> {
     serde_json::from_str(&raw).map_err(|err| format!("invalid JSON in {}: {err}", path.display()))
 }
 
+#[tauri::command]
+fn check_update(app: tauri::AppHandle) -> Result<String, String> {
+    let cli = cli_path(&app)?;
+    let output = Command::new(&cli)
+        .arg("update")
+        .arg("--check")
+        .output()
+        .map_err(|err| format!("failed to execute {}: {err}", cli.display()))?;
+
+    let mut combined = String::new();
+    combined.push_str(&String::from_utf8_lossy(&output.stdout));
+    combined.push_str(&String::from_utf8_lossy(&output.stderr));
+
+    if output.status.success() {
+        Ok(combined)
+    } else {
+        Err(if combined.trim().is_empty() {
+            format!("devsync update check exited with status {}", output.status)
+        } else {
+            combined
+        })
+    }
+}
+
 fn config_path() -> Result<PathBuf, String> {
     let cwd = std::env::current_dir().map_err(|err| format!("failed to get current directory: {err}"))?;
     Ok(cwd.join(".devsync.json"))
@@ -183,7 +207,11 @@ fn cli_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_config, run_devsync])
+        .invoke_handler(tauri::generate_handler![
+            check_update,
+            load_config,
+            run_devsync
+        ])
         .run(tauri::generate_context!())
         .expect("error while running DevSync");
 }

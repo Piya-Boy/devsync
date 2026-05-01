@@ -80,6 +80,19 @@ h2 {
   margin-bottom: 8px;
 }
 
+.panel-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panel-heading h2 {
+  margin-bottom: 0;
+}
+
 .lede,
 .muted {
   color: #94a3b8;
@@ -139,6 +152,13 @@ input:focus-visible {
   outline-offset: 3px;
 }
 
+.secondary-button {
+  min-width: 150px;
+  color: #e5edf5;
+  background: #1e293b;
+  outline: 1px solid rgba(148, 163, 184, 0.35);
+}
+
 .folder-list {
   padding: 0;
   border: 0;
@@ -183,6 +203,15 @@ input:focus-visible {
   border-radius: 14px;
   color: #fde68a;
   background: rgba(120, 53, 15, 0.28);
+}
+
+.update-status {
+  padding: 12px 14px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 14px;
+  color: #bae6fd;
+  background: rgba(14, 116, 144, 0.2);
+  white-space: pre-wrap;
 }
 
 .check-row {

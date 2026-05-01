@@ -197,7 +197,7 @@ Outputs:
 
 ---
 
-# 🧱 PHASE 18 — UPDATE SYSTEM (GitHub Releases)
+# ✅ PHASE 18 — UPDATE SYSTEM (GitHub Releases)
 
 ## 🎯 Goal
 

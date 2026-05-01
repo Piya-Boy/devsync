@@ -30,6 +30,8 @@ function App() {
   const [deployOutput, setDeployOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
   const [dryRun, setDryRun] = useState(true);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -125,6 +127,21 @@ function App() {
     }
   };
 
+  const handleCheckUpdate = async () => {
+    setError('');
+    setUpdateStatus('');
+    setIsCheckingUpdate(true);
+
+    try {
+      const status = await invoke<string>('check_update');
+      setUpdateStatus(status.trim() || 'No update information returned.');
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
   return (
     <main className="app-shell">
       <section className="hero">
@@ -135,8 +152,14 @@ function App() {
         </p>
       </section>
       <section className="panel">
-        <h2>Deploy</h2>
+        <div className="panel-heading">
+          <h2>Deploy</h2>
+          <button type="button" className="secondary-button" disabled={isCheckingUpdate} onClick={handleCheckUpdate}>
+            {isCheckingUpdate ? 'Checking...' : 'Check Update'}
+          </button>
+        </div>
         {error ? <p className="error">{error}</p> : null}
+        {updateStatus ? <p className="update-status">{updateStatus}</p> : null}
         {!config && !error ? <p className="muted">Loading .devsync.json...</p> : null}
         {config ? (
           <form className="deploy-form" onSubmit={handleDeploy}>
