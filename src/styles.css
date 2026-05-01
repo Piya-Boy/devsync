@@ -176,6 +176,15 @@ input:focus-visible {
   background: rgba(127, 29, 29, 0.28);
 }
 
+.warning {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 14px;
+  color: #fde68a;
+  background: rgba(120, 53, 15, 0.28);
+}
+
 .check-row {
   display: flex;
   gap: 10px;

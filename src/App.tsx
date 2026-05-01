@@ -74,6 +74,7 @@ function App() {
     () => config?.servers.find((server) => server.name === selectedServer),
     [config?.servers, selectedServer],
   );
+  const isProduction = selectedServerDetails ? isProductionServer(selectedServerDetails) : false;
 
   const selectedFolderIds = useMemo(() => Array.from(selectedFolders), [selectedFolders]);
   const deployStatus = isRunning
@@ -96,6 +97,16 @@ function App() {
     event.preventDefault();
     setError('');
     setDeployOutput('');
+
+    if (!dryRun && isProduction) {
+      const confirmed = window.confirm(
+        `You are deploying to production server "${selectedServer}". Continue?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     setIsRunning(true);
 
     try {
@@ -145,6 +156,9 @@ function App() {
                 {selectedServerDetails.user}@{selectedServerDetails.host}:{selectedServerDetails.port}
               </p>
             ) : null}
+            {isProduction ? (
+              <p className="warning">Production server detected. Non-dry-run deploys require confirmation.</p>
+            ) : null}
 
             <fieldset className="folder-list">
               <legend>Folders</legend>
@@ -189,6 +203,11 @@ function App() {
 
 function folderId(folder: Folder) {
   return `${folder.local}::${folder.remote}`;
+}
+
+function isProductionServer(server: Server) {
+  const value = `${server.name} ${server.host}`.toLowerCase();
+  return value.includes('prod') || value.includes('production');
 }
 
 export default App;
