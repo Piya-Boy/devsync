@@ -300,7 +300,7 @@ download → temp file → replace binary → restart
 
 ---
 
-# 🧱 PHASE 20 — AUTOMATION (OPTIONAL)
+# ✅ PHASE 20 — AUTOMATION (OPTIONAL)
 
 ## GitHub Actions
 
