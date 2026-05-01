@@ -113,7 +113,7 @@ GOOS=darwin GOARCH=amd64 go build -o devsync
 
 ---
 
-# 🧱 PHASE 10 — TAURI GUI SETUP
+# ✅ PHASE 10 — TAURI GUI SETUP
 
 ## Tasks
 
