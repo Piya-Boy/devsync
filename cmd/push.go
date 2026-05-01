@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/Piya-Boy/devsync/config"
 	"github.com/Piya-Boy/devsync/osadapter"
@@ -14,6 +17,7 @@ import (
 var (
 	serverFlag string
 	dryRun     bool
+	assumeYes  bool
 )
 
 var pushCmd = &cobra.Command{
@@ -26,6 +30,7 @@ var pushCmd = &cobra.Command{
 func init() {
 	pushCmd.Flags().StringVarP(&serverFlag, "server", "s", "", "Target server name (default: first server in config)")
 	pushCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be synced without making changes")
+	pushCmd.Flags().BoolVarP(&assumeYes, "yes", "y", false, "Skip confirmation prompt")
 }
 
 func runPush(cmd *cobra.Command, args []string) error {
@@ -64,8 +69,26 @@ func runPush(cmd *cobra.Command, args []string) error {
 
 	if dryRun {
 		fmt.Println("\n[dry-run] showing what would be synced:")
+	} else if !assumeYes {
+		confirmed, err := confirmDeployment(cmd.InOrStdin(), cmd.OutOrStdout())
+		if err != nil {
+			return err
+		}
+		if !confirmed {
+			return fmt.Errorf("deployment cancelled")
+		}
 	}
 
 	engine := syncengine.New(tr)
 	return engine.SyncAll(server, cfg.Folders, syncengine.Options{DryRun: dryRun})
+}
+
+func confirmDeployment(in io.Reader, out io.Writer) (bool, error) {
+	fmt.Fprint(out, "\nContinue with deployment? Type 'yes' to proceed: ")
+	reader := bufio.NewReader(in)
+	answer, err := reader.ReadString('\n')
+	if err != nil && err != io.EOF {
+		return false, fmt.Errorf("failed to read confirmation: %w", err)
+	}
+	return strings.EqualFold(strings.TrimSpace(answer), "yes"), nil
 }

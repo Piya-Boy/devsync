@@ -94,7 +94,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 8 — SAFETY FEATURES
+# ✅ PHASE 8 — SAFETY FEATURES
 
 ## Tasks
 
