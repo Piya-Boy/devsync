@@ -74,7 +74,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 6 — OS ADAPTER
+# ✅ PHASE 6 — OS ADAPTER
 
 ## Tasks
 
