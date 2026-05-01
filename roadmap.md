@@ -84,7 +84,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 7 — SYNC ENGINE
+# ✅ PHASE 7 — SYNC ENGINE
 
 ## Tasks
 

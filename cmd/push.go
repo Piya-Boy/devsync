@@ -5,6 +5,9 @@ import (
 	"os"
 
 	"github.com/Piya-Boy/devsync/config"
+	"github.com/Piya-Boy/devsync/osadapter"
+	syncengine "github.com/Piya-Boy/devsync/sync"
+	"github.com/Piya-Boy/devsync/transport"
 	"github.com/spf13/cobra"
 )
 
@@ -47,11 +50,22 @@ func runPush(cmd *cobra.Command, args []string) error {
 		fmt.Printf("  [%s] %s → %s\n", label, f.Local, f.Remote)
 	}
 
-	if dryRun {
-		fmt.Println("\n[dry-run] No changes made.")
-		return nil
+	// Auto-detect transport (SSH if port 22 open, else SMB).
+	tr, err := transport.Detect(server)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Using transport: %s\n", tr.Name())
+
+	// Validate platform support before starting.
+	if err := osadapter.ValidatePlatformSupport(tr.Name()); err != nil {
+		return err
 	}
 
-	fmt.Println("\nSync not yet implemented — transport layer pending (Phase 3).")
-	return nil
+	if dryRun {
+		fmt.Println("\n[dry-run] showing what would be synced:")
+	}
+
+	engine := syncengine.New(tr)
+	return engine.SyncAll(server, cfg.Folders, syncengine.Options{DryRun: dryRun})
 }
