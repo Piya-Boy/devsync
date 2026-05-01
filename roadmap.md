@@ -134,7 +134,7 @@ GOOS=darwin GOARCH=amd64 go build -o devsync
 
 ---
 
-# 🧱 PHASE 12 — GUI → CLI BRIDGE
+# ✅ PHASE 12 — GUI → CLI BRIDGE
 
 ## Tasks
 

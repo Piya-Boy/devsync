@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
 type Server = {
@@ -26,6 +26,9 @@ function App() {
   const [selectedServer, setSelectedServer] = useState('');
   const [selectedFolders, setSelectedFolders] = useState<Set<string>>(() => new Set());
   const [error, setError] = useState('');
+  const [deployOutput, setDeployOutput] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
+  const [dryRun, setDryRun] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,6 +60,8 @@ function App() {
     [config?.servers, selectedServer],
   );
 
+  const selectedFolderIds = useMemo(() => Array.from(selectedFolders), [selectedFolders]);
+
   const toggleFolder = (id: string) => {
     setSelectedFolders((current) => {
       const next = new Set(current);
@@ -67,6 +72,26 @@ function App() {
       }
       return next;
     });
+  };
+
+  const handleDeploy = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setDeployOutput('');
+    setIsRunning(true);
+
+    try {
+      const output = await invoke<string>('run_devsync', {
+        server: selectedServer,
+        folders: selectedFolderIds,
+        dryRun,
+      });
+      setDeployOutput(output || 'devsync completed with no output.');
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -83,7 +108,7 @@ function App() {
         {error ? <p className="error">{error}</p> : null}
         {!config && !error ? <p className="muted">Loading .devsync.json...</p> : null}
         {config ? (
-          <form className="deploy-form">
+          <form className="deploy-form" onSubmit={handleDeploy}>
             <label className="field">
               <span>Server</span>
               <select value={selectedServer} onChange={(event) => setSelectedServer(event.target.value)}>
@@ -122,6 +147,14 @@ function App() {
                 );
               })}
             </fieldset>
+            <label className="check-row">
+              <input type="checkbox" checked={dryRun} onChange={(event) => setDryRun(event.target.checked)} />
+              <span>Dry run</span>
+            </label>
+            <button type="submit" disabled={isRunning || selectedFolderIds.length === 0 || !selectedServer}>
+              {isRunning ? 'Deploying...' : 'Deploy'}
+            </button>
+            {deployOutput ? <pre className="log-output">{deployOutput}</pre> : null}
           </form>
         ) : null}
       </section>

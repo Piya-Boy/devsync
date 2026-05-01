@@ -151,3 +151,62 @@ func TestFindServer_NotFound(t *testing.T) {
 		t.Fatal("expected error for unknown server name")
 	}
 }
+
+func TestSelectFolders_EmptySelectsAll(t *testing.T) {
+	cfg := &config.Config{
+		Folders: []config.Folder{
+			{Name: "app", Local: "./dist", Remote: "/var/www/app"},
+			{Name: "api", Local: "./api", Remote: "/var/www/api"},
+		},
+	}
+
+	folders, err := cfg.SelectFolders(nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(folders) != 2 {
+		t.Fatalf("expected 2 folders, got %d", len(folders))
+	}
+}
+
+func TestSelectFolders_ByNameAndID(t *testing.T) {
+	cfg := &config.Config{
+		Folders: []config.Folder{
+			{Name: "app", Local: "./dist", Remote: "/var/www/app"},
+			{Name: "api", Local: "./api", Remote: "/var/www/api"},
+		},
+	}
+
+	folders, err := cfg.SelectFolders([]string{"app", "./api::/var/www/api"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(folders) != 2 {
+		t.Fatalf("expected 2 folders, got %d", len(folders))
+	}
+}
+
+func TestSelectFolders_Deduplicates(t *testing.T) {
+	cfg := &config.Config{
+		Folders: []config.Folder{{Name: "app", Local: "./dist", Remote: "/var/www/app"}},
+	}
+
+	folders, err := cfg.SelectFolders([]string{"app", "./dist::/var/www/app"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(folders) != 1 {
+		t.Fatalf("expected 1 folder, got %d", len(folders))
+	}
+}
+
+func TestSelectFolders_Missing(t *testing.T) {
+	cfg := &config.Config{
+		Folders: []config.Folder{{Name: "app", Local: "./dist", Remote: "/var/www/app"}},
+	}
+
+	_, err := cfg.SelectFolders([]string{"missing"})
+	if err == nil {
+		t.Fatal("expected error for missing folder")
+	}
+}

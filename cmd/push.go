@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	serverFlag string
-	dryRun     bool
-	assumeYes  bool
+	serverFlag  string
+	folderFlags []string
+	dryRun      bool
+	assumeYes   bool
 )
 
 var pushCmd = &cobra.Command{
@@ -29,6 +30,7 @@ var pushCmd = &cobra.Command{
 
 func init() {
 	pushCmd.Flags().StringVarP(&serverFlag, "server", "s", "", "Target server name (default: first server in config)")
+	pushCmd.Flags().StringArrayVarP(&folderFlags, "folder", "f", nil, "Folder selector to sync (name, local path, remote path, or local::remote ID)")
 	pushCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be synced without making changes")
 	pushCmd.Flags().BoolVarP(&assumeYes, "yes", "y", false, "Skip confirmation prompt")
 }
@@ -44,10 +46,14 @@ func runPush(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	folders, err := cfg.SelectFolders(folderFlags)
+	if err != nil {
+		return err
+	}
 
 	fmt.Printf("Resolved server: %s (%s@%s:%d)\n", server.Name, server.User, server.Host, server.Port)
-	fmt.Printf("Folders to sync: %d\n", len(cfg.Folders))
-	for _, f := range cfg.Folders {
+	fmt.Printf("Folders to sync: %d\n", len(folders))
+	for _, f := range folders {
 		label := f.Name
 		if label == "" {
 			label = f.Local
@@ -80,7 +86,7 @@ func runPush(cmd *cobra.Command, args []string) error {
 	}
 
 	engine := syncengine.New(tr)
-	return engine.SyncAll(server, cfg.Folders, syncengine.Options{DryRun: dryRun})
+	return engine.SyncAll(server, folders, syncengine.Options{DryRun: dryRun})
 }
 
 func confirmDeployment(in io.Reader, out io.Writer) (bool, error) {

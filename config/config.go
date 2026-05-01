@@ -24,6 +24,10 @@ type Folder struct {
 	Remote string `json:"remote"`
 }
 
+func (f Folder) ID() string {
+	return f.Local + "::" + f.Remote
+}
+
 type Config struct {
 	Servers []Server `json:"servers"`
 	Folders []Folder `json:"folders"`
@@ -108,4 +112,45 @@ func (c *Config) FindServer(name string) (*Server, error) {
 		}
 	}
 	return nil, fmt.Errorf("server %q not found in config", name)
+}
+
+// SelectFolders returns folders matching the given selectors. Empty selectors return all folders.
+// A selector may be a folder name, local path, remote path, or the stable local::remote folder ID.
+func (c *Config) SelectFolders(selectors []string) ([]Folder, error) {
+	if len(selectors) == 0 {
+		return c.Folders, nil
+	}
+
+	selected := make([]Folder, 0, len(selectors))
+	missing := make([]string, 0)
+	used := make(map[string]bool, len(selectors))
+
+	for _, selector := range selectors {
+		found := false
+		for _, folder := range c.Folders {
+			if folderMatchesSelector(folder, selector) {
+				if !used[folder.ID()] {
+					selected = append(selected, folder)
+					used[folder.ID()] = true
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			missing = append(missing, selector)
+		}
+	}
+
+	if len(missing) > 0 {
+		return nil, fmt.Errorf("folder selector(s) not found in config: %v", missing)
+	}
+	return selected, nil
+}
+
+func folderMatchesSelector(folder Folder, selector string) bool {
+	return selector == folder.Name ||
+		selector == folder.Local ||
+		selector == folder.Remote ||
+		selector == folder.ID()
 }
