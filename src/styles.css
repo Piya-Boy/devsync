@@ -25,6 +25,11 @@ select {
   font: inherit;
 }
 
+button,
+select {
+  border: 0;
+}
+
 .app-shell {
   display: grid;
   gap: 24px;
@@ -84,4 +89,67 @@ h2 {
   max-width: 680px;
   margin-bottom: 0;
   font-size: 1.125rem;
+}
+
+.deploy-form,
+.field,
+.folder-list {
+  display: grid;
+  gap: 16px;
+}
+
+.field span,
+.folder-list legend {
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  color: #e5edf5;
+  background: #111827;
+  outline: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+select:focus-visible {
+  outline: 2px solid #38bdf8;
+}
+
+.folder-list {
+  padding: 0;
+  border: 0;
+}
+
+.folder-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.42);
+}
+
+.folder-item input {
+  margin-top: 4px;
+}
+
+.folder-item span {
+  display: grid;
+  gap: 4px;
+}
+
+.folder-item small {
+  color: #94a3b8;
+}
+
+.error {
+  padding: 12px 14px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 14px;
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.28);
 }

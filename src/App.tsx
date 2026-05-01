@@ -1,4 +1,74 @@
+import { useEffect, useMemo, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+
+type Server = {
+  name: string;
+  host: string;
+  user: string;
+  port: number;
+  password?: string;
+  keyPath?: string;
+};
+
+type Folder = {
+  name?: string;
+  local: string;
+  remote: string;
+};
+
+type DevSyncConfig = {
+  servers: Server[];
+  folders: Folder[];
+};
+
 function App() {
+  const [config, setConfig] = useState<DevSyncConfig | null>(null);
+  const [selectedServer, setSelectedServer] = useState('');
+  const [selectedFolders, setSelectedFolders] = useState<Set<string>>(() => new Set());
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    invoke<DevSyncConfig>('load_config')
+      .then((loadedConfig) => {
+        if (cancelled) {
+          return;
+        }
+
+        setConfig(loadedConfig);
+        setSelectedServer(loadedConfig.servers[0]?.name ?? '');
+        setSelectedFolders(new Set(loadedConfig.folders.map(folderId)));
+        setError('');
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(String(err));
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectedServerDetails = useMemo(
+    () => config?.servers.find((server) => server.name === selectedServer),
+    [config?.servers, selectedServer],
+  );
+
+  const toggleFolder = (id: string) => {
+    setSelectedFolders((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   return (
     <main className="app-shell">
       <section className="hero">
@@ -10,10 +80,57 @@ function App() {
       </section>
       <section className="panel">
         <h2>Deploy</h2>
-        <p className="muted">Configuration loading and deploy controls are added in the next phase.</p>
+        {error ? <p className="error">{error}</p> : null}
+        {!config && !error ? <p className="muted">Loading .devsync.json...</p> : null}
+        {config ? (
+          <form className="deploy-form">
+            <label className="field">
+              <span>Server</span>
+              <select value={selectedServer} onChange={(event) => setSelectedServer(event.target.value)}>
+                {config.servers.map((server) => (
+                  <option key={server.name} value={server.name}>
+                    {server.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {selectedServerDetails ? (
+              <p className="muted">
+                {selectedServerDetails.user}@{selectedServerDetails.host}:{selectedServerDetails.port}
+              </p>
+            ) : null}
+
+            <fieldset className="folder-list">
+              <legend>Folders</legend>
+              {config.folders.map((folder) => {
+                const id = folderId(folder);
+                return (
+                  <label className="folder-item" key={id}>
+                    <input
+                      type="checkbox"
+                      checked={selectedFolders.has(id)}
+                      onChange={() => toggleFolder(id)}
+                    />
+                    <span>
+                      <strong>{folder.name || folder.local}</strong>
+                      <small>
+                        {folder.local} → {folder.remote}
+                      </small>
+                    </span>
+                  </label>
+                );
+              })}
+            </fieldset>
+          </form>
+        ) : null}
       </section>
     </main>
   );
+}
+
+function folderId(folder: Folder) {
+  return `${folder.local}::${folder.remote}`;
 }
 
 export default App;
