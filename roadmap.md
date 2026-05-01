@@ -22,7 +22,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 1 — CLI CORE
+# ✅ PHASE 1 — CLI CORE
 
 ## Tasks
 
