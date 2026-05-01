@@ -1,5 +1,4 @@
-# DevSync — Cross-Platform Roadmap (AI-Ready)
-
+# DevSync — Full Cross-Platform Roadmap
 ## 🎯 Goal
 
 Build a **cross-platform deploy tool** with:
@@ -8,6 +7,7 @@ Build a **cross-platform deploy tool** with:
 * Tauri GUI (desktop app)
 * Support **Windows / Linux / macOS**
 * Support **SSH (primary)** + **SMB (Windows fallback)**
+* Self-update system using **GitHub Releases**
 
 ---
 
@@ -18,30 +18,17 @@ Build a **cross-platform deploy tool** with:
 * Default transport = SSH
 * SMB = fallback only (Windows legacy)
 * Must work offline (local → server)
+* Update system must be separate from deploy logic
 
 ---
 
-# 🧱 PHASE 1 — CLI CORE (CROSS-PLATFORM READY)
+# 🧱 PHASE 1 — CLI CORE
 
 ## Tasks
 
 * Implement `devsync push`
 * Load `.devsync.json`
 * Resolve server + folders
-
-## Acceptance
-
-* Works on at least one OS (dev machine)
-
-## AI Prompt
-
-```id="p1"
-Create a Go CLI using cobra.
-Implement command: devsync push [folders...]
-Load config from .devsync.json.
-Resolve server and folders.
-Print resolved values.
-```
 
 ---
 
@@ -53,44 +40,17 @@ Print resolved values.
 * Create:
 
   * SSHTransport
-  * SMBTransport (stub)
-
-## Acceptance
-
-* Code compiles
-* Transport selected by config
-
-## AI Prompt
-
-```id="p2"
-Design a Transport interface with method Sync(local, remote string).
-Create SSHTransport and SMBTransport structs.
-Add factory function to select transport by server.type.
-```
+  * SMBTransport
 
 ---
 
-# 🧱 PHASE 3 — SSH (PRIMARY, ALL OS)
+# 🧱 PHASE 3 — SSH (PRIMARY)
 
 ## Tasks
 
 * Use rsync via exec
-* Support flags: -avz --delete
-* Handle stdout/stderr
-
-## Acceptance
-
-* Sync works on Linux/macOS
-* Works on Windows if rsync available
-
-## AI Prompt
-
-```id="p3"
-Implement SSHTransport.Sync using rsync.
-Command: rsync -avz --delete local/ user@host:/remote/
-Stream stdout/stderr to console.
-Return errors properly.
-```
+* Flags: `-avz --delete`
+* Stream logs
 
 ---
 
@@ -102,66 +62,25 @@ Return errors properly.
 * Run `robocopy /MIR`
 * Handle credentials
 
-## Acceptance
-
-* Works on Windows without SSH
-
-## AI Prompt
-
-```id="p4"
-Implement SMBTransport.Sync.
-Run:
-1. net use \\host /user:user password
-2. robocopy local \\host\remote /MIR
-Ensure output is visible.
-```
-
 ---
 
-# 🧱 PHASE 5 — AUTO DETECT TRANSPORT
+# 🧱 PHASE 5 — AUTO TRANSPORT DETECTION
 
 ## Tasks
 
 * Check port 22
-* Fallback to SMB if unavailable
-
-## Acceptance
-
-* Correct transport auto-selected
-
-## AI Prompt
-
-```id="p5"
-Implement transport auto detection.
-Try TCP connect to host:22 (timeout 2s).
-If success → SSH
-Else → SMB
-```
+* If available → SSH
+* Else → SMB
 
 ---
 
-# 🧱 PHASE 6 — OS ADAPTER (CRITICAL)
+# 🧱 PHASE 6 — OS ADAPTER
 
 ## Tasks
 
-* Detect runtime OS
+* Detect OS via `runtime.GOOS`
 * Normalize paths
 * Execute commands safely
-
-## Acceptance
-
-* Same code runs on Win/Linux/macOS
-
-## AI Prompt
-
-```id="p6"
-Implement OS adapter layer.
-Detect OS using runtime.GOOS.
-Normalize paths:
-- Windows: backslash
-- Unix: slash
-Provide helper for executing commands cross-platform.
-```
 
 ---
 
@@ -170,22 +89,8 @@ Provide helper for executing commands cross-platform.
 ## Tasks
 
 * Loop folders
-* Build remote path (basePath + folder.remote)
+* Build remote path
 * Call transport.Sync
-
-## Acceptance
-
-* Multiple folders sync correctly
-
-## AI Prompt
-
-```id="p7"
-Implement sync engine.
-For each folder:
-- Build remote path
-- Call selected transport
-Print logs for each step.
-```
 
 ---
 
@@ -193,41 +98,18 @@ Print logs for each step.
 
 ## Tasks
 
-* Dry-run
+* Dry-run mode
 * Confirmation prompt
-
-## Acceptance
-
-* No accidental overwrite
-
-## AI Prompt
-
-```id="p8"
-Add dry-run flag.
-rsync: add -n
-robocopy: add /L
-Add confirmation prompt before execution.
-```
 
 ---
 
 # 🧱 PHASE 9 — BUILD MULTI-OS BINARIES
 
-## Tasks
-
-* Cross-compile
-
-## Commands
-
-```id="p9"
+```bash id="b1"
 GOOS=windows GOARCH=amd64 go build -o devsync.exe
 GOOS=linux GOARCH=amd64 go build -o devsync
 GOOS=darwin GOARCH=amd64 go build -o devsync
 ```
-
-## Acceptance
-
-* CLI runs on all OS
 
 ---
 
@@ -236,18 +118,7 @@ GOOS=darwin GOARCH=amd64 go build -o devsync
 ## Tasks
 
 * Create Tauri + React app
-* Clean UI
-
-## Acceptance
-
-* App launches on dev OS
-
-## AI Prompt
-
-```id="p10"
-Create a Tauri app with React + TypeScript.
-Render a minimal UI with title "DevSync".
-```
+* Minimal UI
 
 ---
 
@@ -261,37 +132,14 @@ Render a minimal UI with title "DevSync".
   * server dropdown
   * folder checkboxes
 
-## Acceptance
-
-* UI reflects real config
-
-## AI Prompt
-
-```id="p11"
-Read .devsync.json in frontend.
-Render dropdown for servers and checkbox list for folders.
-```
-
 ---
 
 # 🧱 PHASE 12 — GUI → CLI BRIDGE
 
 ## Tasks
 
-* Use Tauri shell plugin
-* Execute bundled CLI
-
-## Acceptance
-
-* Button triggers CLI
-
-## AI Prompt
-
-```id="p12"
-Use Tauri shell plugin to run devsync binary.
-Pass selected folders as arguments.
-Capture stdout.
-```
+* Execute CLI from GUI
+* Pass arguments dynamically
 
 ---
 
@@ -299,51 +147,34 @@ Capture stdout.
 
 ## Tasks
 
-* Stream stdout to UI
-
-## Acceptance
-
-* Logs update live
-
-## AI Prompt
-
-```id="p13"
-Stream CLI stdout in Tauri.
-Append logs to UI in real time.
-Auto-scroll log panel.
-```
+* Stream CLI output
+* Show logs in UI
 
 ---
 
-# 🧱 PHASE 14 — BUNDLE CLI WITH GUI
+# 🧱 PHASE 14 — BUNDLE CLI
 
 ## Tasks
 
 * Place binary in:
 
-```id="p14"
+```id="b2"
 src-tauri/bin/
 ```
-
-## Acceptance
-
-* GUI runs without external CLI install
 
 ---
 
 # 🧱 PHASE 15 — BUILD DESKTOP APPS
 
-## Commands
-
-```id="p15"
+```bash id="b3"
 npm run tauri build
 ```
 
-## Outputs
+Outputs:
 
-* Windows → .exe / .msi
-* macOS → .app
-* Linux → AppImage
+* Windows → `.exe / .msi`
+* macOS → `.app`
+* Linux → `.AppImage`
 
 ---
 
@@ -361,28 +192,142 @@ npm run tauri build
 
 ## Tasks
 
-* Detect prod server
+* Detect production server
 * Show warning dialog
+
+---
+
+# 🧱 PHASE 18 — UPDATE SYSTEM (GitHub Releases)
+
+## 🎯 Goal
+
+Use GitHub Releases as backend for updates
+
+---
+
+## Tasks
+
+### 1. Version System
+
+```go id="b4"
+const Version = "0.1.0"
+```
+
+```bash id="b5"
+devsync version
+```
+
+---
+
+### 2. Fetch Latest Release
+
+```text id="b6"
+https://api.github.com/repos/{owner}/{repo}/releases/latest
+```
+
+---
+
+### 3. Parse Response
+
+```json id="b7"
+{
+  "tag_name": "v0.2.0",
+  "assets": [
+    {
+      "name": "devsync-windows.exe",
+      "browser_download_url": "https://github.com/..."
+    }
+  ]
+}
+```
+
+---
+
+### 4. OS-Based Asset Selection
+
+```go id="b8"
+switch runtime.GOOS {
+case "windows": return "devsync-windows.exe"
+case "linux": return "devsync-linux"
+case "darwin": return "devsync-macos"
+}
+```
+
+---
+
+### 5. CLI Self Update
+
+Flow:
+
+```id="b9"
+download → temp file → replace binary → restart
+```
+
+---
+
+### 6. GUI Update (Tauri)
+
+```json id="b10"
+"updater": {
+  "active": true,
+  "endpoints": [
+    "https://api.github.com/repos/yourname/devsync/releases/latest"
+  ]
+}
+```
+
+---
+
+### 7. UI Button
+
+```id="b11"
+[ 🔄 Check Update ]
+```
+
+---
+
+# 🧱 PHASE 19 — RELEASE WORKFLOW
+
+## Tasks
+
+```text id="b12"
+1. Build binaries (Windows/Linux/macOS)
+2. git tag vX.X.X
+3. push tag
+4. create GitHub release
+5. upload assets
+```
+
+---
+
+# 🧱 PHASE 20 — AUTOMATION (OPTIONAL)
+
+## GitHub Actions
+
+* Auto build
+* Auto upload release assets
 
 ---
 
 # 🧪 TEST MATRIX
 
-| Case           | Expected     |
-| -------------- | ------------ |
-| SSH Linux      | success      |
-| SSH macOS      | success      |
-| Windows SSH    | success      |
-| Windows SMB    | success      |
-| No SSH         | fallback SMB |
-| Invalid config | error        |
-| No folder      | prompt       |
+| Case             | Expected      |
+| ---------------- | ------------- |
+| SSH Linux        | success       |
+| SSH macOS        | success       |
+| Windows SSH      | success       |
+| Windows SMB      | success       |
+| No SSH           | fallback SMB  |
+| Invalid config   | error         |
+| No folder        | prompt        |
+| Update available | notify        |
+| Update fail      | safe fallback |
 
 ---
 
 # 🚀 FINAL UX
 
-```id="p16"
+```text id="b13"
 Open app → Select server → Select folders → Deploy → Confirm → Done
 ```
 
@@ -390,10 +335,11 @@ Open app → Select server → Select folders → Deploy → Confirm → Done
 
 # 🔥 FINAL DIRECTIVE FOR AI
 
-* Do NOT add features
 * Do NOT redesign architecture
+* Do NOT add extra features
 * Complete phases sequentially
 * Keep UI minimal
+* Separate update system from deploy logic
 * Prefer reliability over optimization
 
 ---
@@ -401,6 +347,8 @@ Open app → Select server → Select folders → Deploy → Confirm → Done
 # 🧠 META
 
 This system is:
+
 → A cross-platform deploy tool
-→ With adaptive transport
-→ Optimized for real developer workflow
+
+* GitHub-powered update system
+  = A production-ready developer product
