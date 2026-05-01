@@ -32,7 +32,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 2 — TRANSPORT ABSTRACTION
+# ✅ PHASE 2 — TRANSPORT ABSTRACTION
 
 ## Tasks
 
