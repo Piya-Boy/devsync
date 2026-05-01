@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build --ci --ignore-version-mismatches --bundles nsis"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.9.0",

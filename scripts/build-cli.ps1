@@ -8,7 +8,7 @@ $root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $out = Join-Path $root $OutputDir
 New-Item -ItemType Directory -Path $out -Force | Out-Null
 
-$outputName = if ($IsWindows) { "devsync.exe" } else { "devsync" }
+$outputName = if ($env:OS -eq "Windows_NT") { "devsync.exe" } else { "devsync" }
 $output = Join-Path $out $outputName
 
 Write-Host "Building CLI -> $output"

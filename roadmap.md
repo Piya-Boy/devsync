@@ -164,7 +164,7 @@ src-tauri/bin/
 
 ---
 
-# 🧱 PHASE 15 — BUILD DESKTOP APPS
+# ✅ PHASE 15 — BUILD DESKTOP APPS
 
 ```bash id="b3"
 npm run tauri build
