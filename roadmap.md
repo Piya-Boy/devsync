@@ -152,7 +152,7 @@ GOOS=darwin GOARCH=amd64 go build -o devsync
 
 ---
 
-# 🧱 PHASE 14 — BUNDLE CLI
+# ✅ PHASE 14 — BUNDLE CLI
 
 ## Tasks
 

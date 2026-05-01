@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, Mutex},
     thread,
 };
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -63,7 +63,7 @@ fn run_devsync(
     folders: Vec<String>,
     dry_run: bool,
 ) -> Result<String, String> {
-    let cli = cli_path()?;
+    let cli = cli_path(&app)?;
     let mut command = Command::new(&cli);
     command.arg("push").arg("--server").arg(server).arg("--yes");
 
@@ -152,7 +152,7 @@ fn stream_reader<R: Read + Send + 'static>(
     })
 }
 
-fn cli_path() -> Result<PathBuf, String> {
+fn cli_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     if let Ok(path) = std::env::var("DEVSYNC_CLI") {
         return Ok(PathBuf::from(path));
     }
@@ -162,6 +162,15 @@ fn cli_path() -> Result<PathBuf, String> {
     let cwd_cli = cwd.join(exe_name);
     if cwd_cli.exists() {
         return Ok(cwd_cli);
+    }
+
+    let resource_cli = app
+        .path()
+        .resource_dir()
+        .map_err(|err| format!("failed to resolve resource directory: {err}"))?
+        .join(exe_name);
+    if resource_cli.exists() {
+        return Ok(resource_cli);
     }
 
     let current_exe = std::env::current_exe().map_err(|err| format!("failed to get current executable: {err}"))?;
