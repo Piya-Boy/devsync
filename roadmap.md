@@ -64,7 +64,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 5 — AUTO TRANSPORT DETECTION
+# ✅ PHASE 5 — AUTO TRANSPORT DETECTION
 
 ## Tasks
 
