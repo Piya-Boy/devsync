@@ -2,8 +2,8 @@ package transport
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/Piya-Boy/devsync/config"
@@ -15,19 +15,19 @@ type SSHTransport struct{}
 func (SSHTransport) Name() string { return "ssh" }
 
 func (SSHTransport) Sync(server *config.Server, localPath, remotePath string, opts Options) error {
-	args := buildRsyncArgs(server, localPath, remotePath, opts.DryRun)
-	cmd := exec.Command("rsync", args...)
-	cmd.Stdout = newPrefixWriter("[rsync]")
-	cmd.Stderr = newPrefixWriter("[rsync]")
+	args := BuildRsyncArgs(server, localPath, remotePath, opts.DryRun)
 
 	if opts.DryRun {
-		fmt.Printf("[dry-run] rsync %s\n", strings.Join(args, " "))
-		return nil
+		fmt.Printf("[dry-run] would run: rsync %s\n", strings.Join(args, " "))
 	}
+
+	cmd := exec.Command("rsync", args...)
+	cmd.Stdout = newPrefixWriter("[rsync] ", os.Stdout)
+	cmd.Stderr = newPrefixWriter("[rsync] ", os.Stderr)
 	return cmd.Run()
 }
 
-func buildRsyncArgs(server *config.Server, localPath, remotePath string, dryRun bool) []string {
+func BuildRsyncArgs(server *config.Server, localPath, remotePath string, dryRun bool) []string {
 	args := []string{"-avz", "--delete"}
 	if dryRun {
 		args = append(args, "--dry-run")
@@ -46,6 +46,3 @@ func buildRsyncArgs(server *config.Server, localPath, remotePath string, dryRun 
 	args = append(args, local, remote)
 	return args
 }
-
-// portStr is a helper used in tests to verify port encoding.
-func portStr(n int) string { return strconv.Itoa(n) }

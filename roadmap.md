@@ -44,7 +44,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 3 — SSH (PRIMARY)
+# ✅ PHASE 3 — SSH (PRIMARY)
 
 ## Tasks
 
@@ -54,7 +54,7 @@ Build a **cross-platform deploy tool** with:
 
 ---
 
-# 🧱 PHASE 4 — SMB (WINDOWS FALLBACK)
+# ✅ PHASE 4 — SMB (WINDOWS FALLBACK)
 
 ## Tasks
 

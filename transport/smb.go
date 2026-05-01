@@ -2,6 +2,7 @@ package transport
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -56,8 +57,8 @@ func netUse(share, user, password string, dryRun bool) error {
 		return nil
 	}
 	cmd := exec.Command("net", args...)
-	cmd.Stdout = newPrefixWriter("[net]")
-	cmd.Stderr = newPrefixWriter("[net]")
+	cmd.Stdout = newPrefixWriter("[net] ", os.Stdout)
+	cmd.Stderr = newPrefixWriter("[net] ", os.Stderr)
 	return cmd.Run()
 }
 
@@ -69,8 +70,8 @@ func robocopy(src, dst string, dryRun bool) error {
 		return nil
 	}
 	cmd := exec.Command("robocopy", args...)
-	cmd.Stdout = newPrefixWriter("[robocopy]")
-	cmd.Stderr = newPrefixWriter("[robocopy]")
+	cmd.Stdout = newPrefixWriter("[robocopy] ", os.Stdout)
+	cmd.Stderr = newPrefixWriter("[robocopy] ", os.Stderr)
 	if err := cmd.Run(); err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			// robocopy exit codes 0–7 are success/info; >=8 are errors
@@ -90,7 +91,7 @@ func netUseDelete(driveLetter string, dryRun bool) error {
 		return nil
 	}
 	cmd := exec.Command("net", args...)
-	cmd.Stdout = newPrefixWriter("[net]")
-	cmd.Stderr = newPrefixWriter("[net]")
+	cmd.Stdout = newPrefixWriter("[net] ", os.Stdout)
+	cmd.Stderr = newPrefixWriter("[net] ", os.Stderr)
 	return cmd.Run()
 }
